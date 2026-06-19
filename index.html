@@ -1,3 +1,847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Estacionamento Honda PRO Mobile</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    font-family:Arial;
+    background:#1c1c1c;
+    color:#fff;
+    overflow:hidden;
+}
+
+/* =========================
+   MOBILE LAYOUT
+========================= */
+
+.container{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+}
+
+#mapWrapper{
+    flex:1;
+    overflow:hidden;
+    position:relative;
+    background:#111;
+    touch-action:none;
+}
+
+#map{
+    position:absolute;
+    transform-origin:0 0;
+}
+
+/* =========================
+   ÁREAS
+========================= */
+
+.area{
+    margin:10px;
+    border:2px solid #555;
+    position:relative;
+    width:1200px;
+    height:700px;
+    background:#222;
+}
+
+.area h3{
+    margin:5px;
+    font-size:14px;
+}
+
+/* =========================
+   VAGAS
+========================= */
+
+.vaga{
+    width:75px;
+    height:130px;
+    background:#444;
+    border:2px dashed #777;
+    position:absolute;
+    border-radius:8px;
+    user-select:none;
+    touch-action:none;
+}
+
+.vaga.editando{
+    border:2px dashed #00ff99;
+}
+
+.carro{
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    font-size:9px;
+    text-align:center;
+    padding:4px;
+}
+
+.chassi{
+    background:rgba(0,0,0,.5);
+    padding:2px;
+    margin-top:3px;
+    border-radius:4px;
+    font-size:8px;
+}
+
+/* =========================
+   MENU MOBILE
+========================= */
+
+#menuBtn{
+    position:fixed;
+    top:10px;
+    right:10px;
+    z-index:9999;
+    width:55px;
+    height:55px;
+    border:none;
+    border-radius:50%;
+    background:#007bff;
+    color:#fff;
+    font-size:26px;
+}
+
+.painel{
+    position:fixed;
+    top:0;
+    right:-100%;
+    width:85%;
+    max-width:340px;
+    height:100%;
+    background:#111;
+    z-index:9998;
+    overflow:auto;
+    transition:.3s;
+    padding:12px;
+}
+
+.painel.active{
+    right:0;
+}
+
+input,
+select,
+button{
+    width:100%;
+    margin-bottom:8px;
+    padding:12px;
+    border:none;
+    border-radius:6px;
+}
+
+button{
+    background:#333;
+    color:#fff;
+}
+
+.dashboard{
+    background:#000;
+    padding:10px;
+    border-radius:8px;
+    margin-bottom:12px;
+}
+
+.locked{
+    opacity:.5;
+    pointer-events:none;
+}
+
+.toggleOn{
+    background:green;
+}
+
+.toggleOff{
+    background:red;
+}
+
+hr{
+    border:1px solid #333;
+}
+
+</style>
+</head>
+
+<body>
+
+<button id="menuBtn" onclick="toggleMenu()">
+☰
+</button>
+
+<div class="container">
+
+    <div id="mapWrapper">
+        <div id="map"></div>
+    </div>
+
+    <div class="painel" id="painel">
+
+        <!-- LOGIN -->
+
+        <div class="dashboard">
+
+            <h3>🔐 Login</h3>
+
+            <input
+                id="loginUser"
+                placeholder="Usuário"
+            >
+
+            <input
+                id="loginPass"
+                type="password"
+                placeholder="Senha"
+            >
+
+            <button onclick="fazerLogin()">
+                Entrar
+            </button>
+
+            <button onclick="logout()">
+                Sair
+            </button>
+
+            <div id="statusLogin">
+                🔒 Visualização
+            </div>
+
+        </div>
+
+        <!-- DASH -->
+
+        <div class="dashboard">
+
+            <h3>📊 Dashboard</h3>
+
+            <div>Total vagas:
+                <span id="tv">0</span>
+            </div>
+
+            <div>Carros:
+                <span id="tc">0</span>
+            </div>
+
+            <div>Ocupadas:
+                <span id="oc">0</span>
+            </div>
+
+            <div>Livres:
+                <span id="lv">0</span>
+            </div>
+
+        </div>
+
+        <!-- EDIÇÃO -->
+
+        <div id="painelEdicao" class="locked">
+
+            <select id="modelo">
+
+                <option>HR-V Advance</option>
+                <option>HR-V EX</option>
+                <option>HR-V EXL</option>
+                <option>HR-V Touring</option>
+
+                <option>City LX</option>
+                <option>City EX</option>
+                <option>City Touring</option>
+
+                <option>City Hatch Touring</option>
+
+                <option>WR-V EXL</option>
+
+            </select>
+
+            <input type="color" id="cor">
+
+            <input
+                type="color"
+                id="corTexto"
+                value="#ffffff"
+            >
+
+            <input
+                id="chassi"
+                placeholder="Chassi"
+            >
+
+            <button onclick="addCarro()">
+                Adicionar Carro
+            </button>
+
+            <button onclick="remCarro()">
+                Remover Carro
+            </button>
+
+            <button onclick="rotacionar()">
+                Rotacionar
+            </button>
+
+            <hr>
+
+            <button
+                id="btnDelete"
+                onclick="toggleDelete()"
+            >
+                Excluir OFF
+            </button>
+
+            <button
+                id="btnSnap"
+                onclick="toggleSnap()"
+            >
+                Snap OFF
+            </button>
+
+            <hr>
+
+            <input
+                id="nomeArea"
+                placeholder="Nome bloco"
+            >
+
+            <button onclick="criarArea()">
+                Criar Bloco
+            </button>
+
+            <button onclick="salvar()">
+                Salvar
+            </button>
+
+            <button onclick="reset()">
+                Reset
+            </button>
+
+        </div>
+
+        <hr>
+
+        <!-- BUSCA AVANÇADA -->
+
+        <input
+            id="busca"
+            placeholder="Buscar chassi, modelo ou versão..."
+            oninput="buscar()"
+        >
+
+    </div>
+
+</div>
+
+<script>
+
+/* =========================
+   MENU MOBILE
+========================= */
+
+function toggleMenu(){
+
+    painel.classList.toggle("active");
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+const LOGIN = "Wendel";
+const SENHA = "452159";
+
+let modoEdicao = false;
+
+function fazerLogin(){
+
+    let u = loginUser.value;
+    let s = loginPass.value;
+
+    if(u === LOGIN && s === SENHA){
+
+        modoEdicao = true;
+
+        painelEdicao.classList.remove("locked");
+
+        statusLogin.innerHTML =
+            "✅ Modo edição";
+
+        atualizarBotoes();
+
+        localStorage.setItem(
+            "loginEstac",
+            "true"
+        );
+
+    }else{
+
+        alert("Login inválido");
+    }
+}
+
+function logout(){
+
+    modoEdicao = false;
+
+    painelEdicao.classList.add("locked");
+
+    statusLogin.innerHTML =
+        "🔒 Visualização";
+
+    localStorage.removeItem(
+        "loginEstac"
+    );
+}
+
+function carregarLogin(){
+
+    let l =
+        localStorage.getItem(
+            "loginEstac"
+        );
+
+    if(l === "true"){
+
+        modoEdicao = true;
+
+        painelEdicao
+        .classList
+        .remove("locked");
+
+        statusLogin.innerHTML =
+            "✅ Modo edição";
+    }
+}
+
+/* =========================
+   MAPA TOUCH
+========================= */
+
+let map =
+    document.getElementById("map");
+
+let wrap =
+    document.getElementById("mapWrapper");
+
+let scale = 1;
+let posX = 0;
+let posY = 0;
+
+function updateTransform(){
+
+    map.style.transform =
+        `translate(${posX}px,${posY}px)
+        scale(${scale})`;
+}
+
+/* =========================
+   PAN TOUCH
+========================= */
+
+let startX = 0;
+let startY = 0;
+
+let isPanning = false;
+
+wrap.addEventListener(
+    "touchstart",
+    e=>{
+
+        if(e.target.closest(".vaga"))
+            return;
+
+        isPanning = true;
+
+        startX =
+            e.touches[0].clientX - posX;
+
+        startY =
+            e.touches[0].clientY - posY;
+    }
+);
+
+wrap.addEventListener(
+    "touchmove",
+    e=>{
+
+        if(!isPanning)
+            return;
+
+        posX =
+            e.touches[0].clientX - startX;
+
+        posY =
+            e.touches[0].clientY - startY;
+
+        updateTransform();
+    }
+);
+
+wrap.addEventListener(
+    "touchend",
+    ()=>{
+
+        isPanning = false;
+    }
+);
+
+/* =========================
+   ZOOM TOUCH
+========================= */
+
+wrap.addEventListener(
+    "wheel",
+    e=>{
+
+        e.preventDefault();
+
+        scale += e.deltaY * -0.001;
+
+        scale =
+            Math.min(
+                Math.max(.4,scale),
+                3
+            );
+
+        updateTransform();
+    }
+);
+
+/* =========================
+   SISTEMA
+========================= */
+
+let vagaSel = null;
+
+let modoDelete = false;
+
+let snap = false;
+
+const GRID = 20;
+
+/* =========================
+   DASHBOARD
+========================= */
+
+function dash(){
+
+    let v =
+        document.querySelectorAll(".vaga")
+        .length;
+
+    let c =
+        document.querySelectorAll(".carro")
+        .length;
+
+    tv.innerText = v;
+    tc.innerText = c;
+
+    oc.innerText = c;
+    lv.innerText = v - c;
+}
+
+/* =========================
+   BOTÕES
+========================= */
+
+function atualizarBotoes(){
+
+    btnDelete.className =
+        modoDelete
+        ? "toggleOn"
+        : "toggleOff";
+
+    btnDelete.innerText =
+        "Excluir " +
+        (modoDelete ? "ON":"OFF");
+
+    btnSnap.className =
+        snap
+        ? "toggleOn"
+        : "toggleOff";
+
+    btnSnap.innerText =
+        "Snap " +
+        (snap ? "ON":"OFF");
+}
+
+/* =========================
+   ÁREAS
+========================= */
+
+function criarAreaBase(nome){
+
+    let a =
+        document.createElement("div");
+
+    a.className = "area";
+
+    let t =
+        document.createElement("h3");
+
+    t.innerText = nome;
+
+    a.appendChild(t);
+
+    a.addEventListener(
+        "dblclick",
+        e=>{
+
+            if(!modoEdicao)
+                return;
+
+            let rect =
+                a.getBoundingClientRect();
+
+            let x =
+                (e.clientX
+                - rect.left
+                - posX) / scale;
+
+            let y =
+                (e.clientY
+                - rect.top
+                - posY) / scale;
+
+            criarVaga(a,x,y);
+
+            salvar();
+        }
+    );
+
+    map.appendChild(a);
+}
+
+function criarArea(){
+
+    if(!modoEdicao)
+        return;
+
+    if(nomeArea.value){
+
+        criarAreaBase(
+            nomeArea.value
+        );
+
+        salvar();
+    }
+}
+
+/* =========================
+   VAGAS
+========================= */
+
+function criarVaga(a,x,y){
+
+    let v =
+        document.createElement("div");
+
+    v.className = "vaga";
+
+    v.style.left = x + "px";
+    v.style.top = y + "px";
+
+    v.dataset.rot = 0;
+
+    let dragging = false;
+
+    let offsetX = 0;
+    let offsetY = 0;
+
+    v.addEventListener(
+        "touchstart",
+        e=>{
+
+            if(!modoEdicao)
+                return;
+
+            dragging = true;
+
+            let rect =
+                v.getBoundingClientRect();
+
+            offsetX =
+                e.touches[0].clientX
+                - rect.left;
+
+            offsetY =
+                e.touches[0].clientY
+                - rect.top;
+        }
+    );
+
+    v.addEventListener(
+        "touchmove",
+        e=>{
+
+            if(!dragging)
+                return;
+
+            let rectArea =
+                a.getBoundingClientRect();
+
+            let nx =
+                (e.touches[0].clientX
+                - rectArea.left
+                - offsetX) / scale;
+
+            let ny =
+                (e.touches[0].clientY
+                - rectArea.top
+                - offsetY) / scale;
+
+            if(snap){
+
+                nx =
+                    Math.round(nx/GRID)
+                    * GRID;
+
+                ny =
+                    Math.round(ny/GRID)
+                    * GRID;
+            }
+
+            v.style.left =
+                nx + "px";
+
+            v.style.top =
+                ny + "px";
+        }
+    );
+
+    v.addEventListener(
+        "touchend",
+        ()=>{
+
+            dragging = false;
+
+            salvar();
+        }
+    );
+
+    v.addEventListener(
+        "click",
+        ()=>{
+
+            vagaSel = v;
+
+            document
+            .querySelectorAll(".vaga")
+            .forEach(x=>
+                x.style.outline=""
+            );
+
+            v.style.outline =
+                "2px solid yellow";
+        }
+    );
+
+    a.appendChild(v);
+
+    dash();
+
+    return v;
+}
+
+/* =========================
+   CARROS
+========================= */
+
+function addCarro(){
+
+    if(!modoEdicao)
+        return;
+
+    if(!vagaSel)
+        return alert("Selecione vaga");
+
+    vagaSel.innerHTML = `
+
+        <div class="carro"
+        style="
+        background:${cor.value};
+        color:${corTexto.value}
+        ">
+
+            ${modelo.value}
+
+            <div class="chassi">
+                ${chassi.value}
+            </div>
+
+        </div>
+    `;
+
+    salvar();
+
+    dash();
+}
+
+function remCarro(){
+
+    if(!modoEdicao)
+        return;
+
+    if(vagaSel){
+
+        vagaSel.innerHTML = "";
+
+        salvar();
+
+        dash();
+    }
+}
+
+function rotacionar(){
+
+    if(!modoEdicao)
+        return;
+
+    if(!vagaSel)
+        return;
+
+    let r =
+        (+vagaSel.dataset.rot+90)%360;
+
+    vagaSel.dataset.rot = r;
+
+    vagaSel.style.transform =
+        `rotate(${r}deg)`;
+
+    salvar();
+}
+
+/* =========================
+   TOGGLES
+========================= */
+
+function toggleDelete(){
+
+    modoDelete = !modoDelete;
+
+    atualizarBotoes();
+}
+
+function toggleSnap(){
+
+    snap = !snap;
+
+    atualizarBotoes();
+}
+
 /* =========================
    BUSCA AVANÇADA
 ========================= */
@@ -15,9 +859,7 @@ function buscar(){
 
         let textoBusca = "";
 
-        /* =========================
-           CHASSI
-        ========================= */
+        /* CHASSI */
 
         let chassi =
             v.querySelector(".chassi");
@@ -29,9 +871,7 @@ function buscar(){
                 .toLowerCase() + " ";
         }
 
-        /* =========================
-           MODELO / VERSÃO
-        ========================= */
+        /* MODELO / VERSÃO */
 
         let carro =
             v.querySelector(".carro");
@@ -49,9 +889,7 @@ function buscar(){
             }
         }
 
-        /* =========================
-           RESULTADO
-        ========================= */
+        /* RESULTADO */
 
         if(
             val !== "" &&
@@ -71,3 +909,185 @@ function buscar(){
         }
     });
 }
+
+/* =========================
+   FIREBASE ONLINE
+========================= */
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    set,
+    onValue
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+
+    apiKey:
+    "AIzaSyDVrSDy2Ni92ksYc9Yx9u_8N1cCDH_0ku8",
+
+    authDomain:
+    "gestaodepatio-90ed5.firebaseapp.com",
+
+    databaseURL:
+    "https://gestaodepatio-90ed5-default-rtdb.firebaseio.com",
+
+    projectId:
+    "gestaodepatio-90ed5",
+
+    storageBucket:
+    "gestaodepatio-90ed5.appspot.com",
+
+    messagingSenderId:
+    "1004350181635",
+
+    appId:
+    "1:1004350181635:web:fd98b8609ec3ddad149936"
+};
+
+const app =
+    initializeApp(firebaseConfig);
+
+const db =
+    getDatabase(app);
+
+/* =========================
+   SALVAR
+========================= */
+
+window.salvar = async function(){
+
+    let data = [];
+
+    document
+    .querySelectorAll(".area")
+    .forEach(a=>{
+
+        let vagas=[];
+
+        a.querySelectorAll(".vaga")
+        .forEach(v=>{
+
+            vagas.push({
+
+                x:v.style.left,
+                y:v.style.top,
+                html:v.innerHTML,
+                rot:v.dataset.rot
+            });
+        });
+
+        data.push({
+
+            nome:
+            a.querySelector("h3").innerText,
+
+            vagas
+        });
+    });
+
+    await set(
+        ref(db,"estacionamento"),
+        data
+    );
+
+    dash();
+}
+
+/* =========================
+   CARREGAR
+========================= */
+
+function carregarOnline(){
+
+    onValue(
+
+        ref(db,"estacionamento"),
+
+        (snap)=>{
+
+            map.innerHTML="";
+
+            if(!snap.exists())
+                return;
+
+            let d =
+                snap.val();
+
+            d.forEach(a=>{
+
+                criarAreaBase(a.nome);
+
+                let areas =
+                    document.querySelectorAll(".area");
+
+                let atual =
+                    areas[areas.length-1];
+
+                if(a.vagas){
+
+                    a.vagas.forEach(v=>{
+
+                        let nv =
+                            criarVaga(
+                                atual,
+                                parseInt(v.x),
+                                parseInt(v.y)
+                            );
+
+                        nv.innerHTML =
+                            v.html;
+
+                        nv.dataset.rot =
+                            v.rot;
+
+                        nv.style.transform =
+                            `rotate(${v.rot}deg)`;
+                    });
+                }
+            });
+
+            dash();
+
+            atualizarBotoes();
+        }
+    );
+}
+
+/* =========================
+   RESET
+========================= */
+
+window.reset = async function(){
+
+    if(!modoEdicao)
+        return;
+
+    await set(
+        ref(db,"estacionamento"),
+        null
+    );
+
+    location.reload();
+}
+
+/* =========================
+   INIT
+========================= */
+
+carregarLogin();
+
+carregarOnline();
+
+dash();
+
+atualizarBotoes();
+
+</script>
+
+</body>
+</html>
