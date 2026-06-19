@@ -3,40 +3,27 @@
 
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Estacionamento Honda PRO Mobile</title>
+<title>Estacionamento Honda PRO ONLINE</title>
 
 <style>
-
-*{
-    box-sizing:border-box;
-}
 
 body{
     margin:0;
     font-family:Arial;
-    background:#1c1c1c;
+    background:#222;
     color:#fff;
-    overflow:hidden;
 }
-
-/* =========================
-   MOBILE LAYOUT
-========================= */
 
 .container{
     display:flex;
-    flex-direction:column;
-    height:100vh;
 }
 
 #mapWrapper{
     flex:1;
     overflow:hidden;
     position:relative;
-    background:#111;
-    touch-action:none;
+    background:#1a1a1a;
+    cursor:grab;
 }
 
 #map{
@@ -44,41 +31,28 @@ body{
     transform-origin:0 0;
 }
 
-/* =========================
-   ÁREAS
-========================= */
-
 .area{
-    margin:10px;
+    margin:20px;
     border:2px solid #555;
     position:relative;
     width:1200px;
     height:700px;
-    background:#222;
 }
-
-.area h3{
-    margin:5px;
-    font-size:14px;
-}
-
-/* =========================
-   VAGAS
-========================= */
 
 .vaga{
-    width:75px;
-    height:130px;
+    width:80px;
+    height:140px;
     background:#444;
     border:2px dashed #777;
     position:absolute;
-    border-radius:8px;
+    cursor:pointer;
     user-select:none;
-    touch-action:none;
+    transition:.1s;
 }
 
 .vaga.editando{
     border:2px dashed #00ff99;
+    cursor:grab;
 }
 
 .carro{
@@ -88,75 +62,55 @@ body{
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    font-size:9px;
+    font-size:10px;
     text-align:center;
-    padding:4px;
 }
 
 .chassi{
-    background:rgba(0,0,0,.5);
+    background:rgba(0,0,0,0.6);
     padding:2px;
-    margin-top:3px;
-    border-radius:4px;
-    font-size:8px;
-}
-
-/* =========================
-   MENU MOBILE
-========================= */
-
-#menuBtn{
-    position:fixed;
-    top:10px;
-    right:10px;
-    z-index:9999;
-    width:55px;
-    height:55px;
-    border:none;
-    border-radius:50%;
-    background:#007bff;
-    color:#fff;
-    font-size:26px;
+    margin-top:4px;
 }
 
 .painel{
-    position:fixed;
-    top:0;
-    right:-100%;
-    width:85%;
-    max-width:340px;
-    height:100%;
+    width:320px;
     background:#111;
-    z-index:9998;
+    padding:10px;
+    border-left:2px solid #444;
+    height:100vh;
     overflow:auto;
-    transition:.3s;
-    padding:12px;
-}
-
-.painel.active{
-    right:0;
 }
 
 input,
 select,
 button{
     width:100%;
-    margin-bottom:8px;
-    padding:12px;
-    border:none;
-    border-radius:6px;
-}
-
-button{
-    background:#333;
-    color:#fff;
+    margin-bottom:6px;
+    padding:8px;
+    box-sizing:border-box;
 }
 
 .dashboard{
     background:#000;
     padding:10px;
-    border-radius:8px;
-    margin-bottom:12px;
+    margin-bottom:10px;
+}
+
+.toggleOn{
+    background:green;
+    color:#fff;
+}
+
+.toggleOff{
+    background:red;
+    color:#fff;
+}
+
+.loginBox{
+    background:#000;
+    padding:10px;
+    margin-bottom:10px;
+    border:2px solid #333;
 }
 
 .locked{
@@ -164,26 +118,10 @@ button{
     pointer-events:none;
 }
 
-.toggleOn{
-    background:green;
-}
-
-.toggleOff{
-    background:red;
-}
-
-hr{
-    border:1px solid #333;
-}
-
 </style>
 </head>
 
 <body>
-
-<button id="menuBtn" onclick="toggleMenu()">
-☰
-</button>
 
 <div class="container">
 
@@ -191,17 +129,15 @@ hr{
         <div id="map"></div>
     </div>
 
-    <div class="painel" id="painel">
+    <div class="painel">
 
-        <!-- LOGIN -->
+        <div class="loginBox">
 
-        <div class="dashboard">
-
-            <h3>🔐 Login</h3>
+            <h3>🔐 Área Restrita</h3>
 
             <input
                 id="loginUser"
-                placeholder="Usuário"
+                placeholder="Login"
             >
 
             <input
@@ -211,24 +147,22 @@ hr{
             >
 
             <button onclick="fazerLogin()">
-                Entrar
+                Entrar no modo edição
             </button>
 
             <button onclick="logout()">
-                Sair
+                Sair do modo edição
             </button>
 
             <div id="statusLogin">
-                🔒 Visualização
+                Modo visualização ativo
             </div>
 
         </div>
 
-        <!-- DASH -->
-
         <div class="dashboard">
 
-            <h3>📊 Dashboard</h3>
+            <h4>📊 Dashboard</h4>
 
             <div>Total vagas:
                 <span id="tv">0</span>
@@ -248,24 +182,35 @@ hr{
 
         </div>
 
-        <!-- EDIÇÃO -->
-
         <div id="painelEdicao" class="locked">
 
             <select id="modelo">
 
-                <option>HR-V Advance</option>
-                <option>HR-V EX</option>
-                <option>HR-V EXL</option>
-                <option>HR-V Touring</option>
+                <optgroup label="SUV Honda">
+                    <option>HR-V Advance</option>
+                    <option>HR-V EX</option>
+                    <option>HR-V EXL</option>
+                    <option>HR-V Touring</option>
 
-                <option>City LX</option>
-                <option>City EX</option>
-                <option>City Touring</option>
+                    <option>WR-V LX</option>
+                    <option>WR-V EX</option>
+                    <option>WR-V EXL</option>
+                </optgroup>
 
-                <option>City Hatch Touring</option>
+                <optgroup label="Sedan Honda">
+                    <option>City LX</option>
+                    <option>City EX</option>
+                    <option>City EXL</option>
+                    <option>City Touring</option>
+                    <option>Civic EX</option>
+                    <option>Civic Touring</option>
+                </optgroup>
 
-                <option>WR-V EXL</option>
+                <optgroup label="Hatch Honda">
+                    <option>City Hatch EXL</option>
+                    <option>City Hatch EX</option>
+                    <option>City Hatch Touring</option>
+                </optgroup>
 
             </select>
 
@@ -321,6 +266,8 @@ hr{
                 Criar Bloco
             </button>
 
+            <hr>
+
             <button onclick="salvar()">
                 Salvar
             </button>
@@ -333,7 +280,9 @@ hr{
 
         <hr>
 
-        <!-- BUSCA AVANÇADA -->
+        <!-- =========================
+             BUSCA AVANÇADA
+        ========================= -->
 
         <input
             id="busca"
@@ -348,15 +297,6 @@ hr{
 <script>
 
 /* =========================
-   MENU MOBILE
-========================= */
-
-function toggleMenu(){
-
-    painel.classList.toggle("active");
-}
-
-/* =========================
    LOGIN
 ========================= */
 
@@ -367,17 +307,22 @@ let modoEdicao = false;
 
 function fazerLogin(){
 
-    let u = loginUser.value;
-    let s = loginPass.value;
+    let u =
+        document.getElementById("loginUser").value;
+
+    let s =
+        document.getElementById("loginPass").value;
 
     if(u === LOGIN && s === SENHA){
 
         modoEdicao = true;
 
-        painelEdicao.classList.remove("locked");
+        document
+        .getElementById("painelEdicao")
+        .classList.remove("locked");
 
         statusLogin.innerHTML =
-            "✅ Modo edição";
+            "✅ Modo edição liberado";
 
         atualizarBotoes();
 
@@ -386,9 +331,11 @@ function fazerLogin(){
             "true"
         );
 
+        alert("Login realizado");
+
     }else{
 
-        alert("Login inválido");
+        alert("Login ou senha inválidos");
     }
 }
 
@@ -399,36 +346,36 @@ function logout(){
     painelEdicao.classList.add("locked");
 
     statusLogin.innerHTML =
-        "🔒 Visualização";
+        "🔒 Modo visualização ativo";
 
-    localStorage.removeItem(
-        "loginEstac"
-    );
+    atualizarBotoes();
+
+    localStorage.removeItem("loginEstac");
 }
 
 function carregarLogin(){
 
     let l =
-        localStorage.getItem(
-            "loginEstac"
-        );
+        localStorage.getItem("loginEstac");
 
     if(l === "true"){
 
         modoEdicao = true;
 
-        painelEdicao
-        .classList
-        .remove("locked");
+        painelEdicao.classList.remove("locked");
 
         statusLogin.innerHTML =
-            "✅ Modo edição";
+            "✅ Modo edição liberado";
     }
 }
 
 /* =========================
-   MAPA TOUCH
+   MAPA
 ========================= */
+
+let scale = 1;
+let posX = 0;
+let posY = 0;
 
 let map =
     document.getElementById("map");
@@ -436,89 +383,70 @@ let map =
 let wrap =
     document.getElementById("mapWrapper");
 
-let scale = 1;
-let posX = 0;
-let posY = 0;
-
 function updateTransform(){
 
     map.style.transform =
         `translate(${posX}px,${posY}px)
-        scale(${scale})`;
+         scale(${scale})`;
 }
 
 /* =========================
-   PAN TOUCH
+   ZOOM
 ========================= */
 
-let startX = 0;
-let startY = 0;
+wrap.onwheel = e => {
+
+    e.preventDefault();
+
+    scale += e.deltaY * -0.001;
+
+    scale =
+        Math.min(
+            Math.max(.5, scale),
+            3
+        );
+
+    updateTransform();
+};
+
+/* =========================
+   PAN MAPA
+========================= */
 
 let isPanning = false;
 
-wrap.addEventListener(
-    "touchstart",
-    e=>{
+let startX;
+let startY;
 
-        if(e.target.closest(".vaga"))
-            return;
+wrap.addEventListener("mousedown", e => {
 
-        isPanning = true;
+    if(e.target.closest(".vaga"))
+        return;
 
-        startX =
-            e.touches[0].clientX - posX;
+    isPanning = true;
 
-        startY =
-            e.touches[0].clientY - posY;
-    }
-);
+    wrap.style.cursor = "grabbing";
 
-wrap.addEventListener(
-    "touchmove",
-    e=>{
+    startX = e.clientX - posX;
+    startY = e.clientY - posY;
+});
 
-        if(!isPanning)
-            return;
+document.addEventListener("mousemove", e => {
 
-        posX =
-            e.touches[0].clientX - startX;
+    if(!isPanning) return;
 
-        posY =
-            e.touches[0].clientY - startY;
+    posX = e.clientX - startX;
+    posY = e.clientY - startY;
 
-        updateTransform();
-    }
-);
+    updateTransform();
+});
 
-wrap.addEventListener(
-    "touchend",
-    ()=>{
+document.addEventListener("mouseup", () => {
 
-        isPanning = false;
-    }
-);
+    isPanning = false;
 
-/* =========================
-   ZOOM TOUCH
-========================= */
-
-wrap.addEventListener(
-    "wheel",
-    e=>{
-
-        e.preventDefault();
-
-        scale += e.deltaY * -0.001;
-
-        scale =
-            Math.min(
-                Math.max(.4,scale),
-                3
-            );
-
-        updateTransform();
-    }
-);
+    wrap.style.cursor = "grab";
+});
 
 /* =========================
    SISTEMA
@@ -527,7 +455,6 @@ wrap.addEventListener(
 let vagaSel = null;
 
 let modoDelete = false;
-
 let snap = false;
 
 const GRID = 20;
@@ -539,12 +466,10 @@ const GRID = 20;
 function dash(){
 
     let v =
-        document.querySelectorAll(".vaga")
-        .length;
+        document.querySelectorAll(".vaga").length;
 
     let c =
-        document.querySelectorAll(".carro")
-        .length;
+        document.querySelectorAll(".carro").length;
 
     tv.innerText = v;
     tc.innerText = c;
@@ -560,22 +485,31 @@ function dash(){
 function atualizarBotoes(){
 
     btnDelete.className =
-        modoDelete
-        ? "toggleOn"
-        : "toggleOff";
+        modoDelete ? "toggleOn" : "toggleOff";
 
     btnDelete.innerText =
         "Excluir " +
-        (modoDelete ? "ON":"OFF");
+        (modoDelete ? "ON" : "OFF");
 
     btnSnap.className =
-        snap
-        ? "toggleOn"
-        : "toggleOff";
+        snap ? "toggleOn" : "toggleOff";
 
     btnSnap.innerText =
         "Snap " +
-        (snap ? "ON":"OFF");
+        (snap ? "ON" : "OFF");
+
+    document.querySelectorAll(".vaga")
+    .forEach(v=>{
+
+        if(modoEdicao){
+
+            v.classList.add("editando");
+
+        }else{
+
+            v.classList.remove("editando");
+        }
+    });
 }
 
 /* =========================
@@ -596,31 +530,39 @@ function criarAreaBase(nome){
 
     a.appendChild(t);
 
-    a.addEventListener(
-        "dblclick",
-        e=>{
+    a.onclick = e => {
 
-            if(!modoEdicao)
-                return;
+        if(!modoEdicao)
+            return;
+
+        if(modoDelete)
+            return;
+
+        if(e.target === a){
 
             let rect =
                 a.getBoundingClientRect();
 
             let x =
-                (e.clientX
-                - rect.left
-                - posX) / scale;
+                (e.clientX - rect.left) / scale;
 
             let y =
-                (e.clientY
-                - rect.top
-                - posY) / scale;
+                (e.clientY - rect.top) / scale;
 
-            criarVaga(a,x,y);
+            if(snap){
+
+                x =
+                    Math.round(x / GRID) * GRID;
+
+                y =
+                    Math.round(y / GRID) * GRID;
+            }
+
+            criarVaga(a, x, y);
 
             salvar();
         }
-    );
+    };
 
     map.appendChild(a);
 }
@@ -628,13 +570,13 @@ function criarAreaBase(nome){
 function criarArea(){
 
     if(!modoEdicao)
-        return;
+        return alert("Acesso negado");
 
-    if(nomeArea.value){
+    let nome = nomeArea.value;
 
-        criarAreaBase(
-            nomeArea.value
-        );
+    if(nome){
+
+        criarAreaBase(nome);
 
         salvar();
     }
@@ -644,7 +586,7 @@ function criarArea(){
    VAGAS
 ========================= */
 
-function criarVaga(a,x,y){
+function criarVaga(a, x, y){
 
     let v =
         document.createElement("div");
@@ -661,93 +603,91 @@ function criarVaga(a,x,y){
     let offsetX = 0;
     let offsetY = 0;
 
-    v.addEventListener(
-        "touchstart",
-        e=>{
+    v.addEventListener("mousedown", e => {
 
-            if(!modoEdicao)
-                return;
+        if(!modoEdicao)
+            return;
 
-            dragging = true;
+        e.stopPropagation();
 
-            let rect =
-                v.getBoundingClientRect();
+        dragging = true;
 
-            offsetX =
-                e.touches[0].clientX
-                - rect.left;
+        let rect =
+            v.getBoundingClientRect();
 
-            offsetY =
-                e.touches[0].clientY
-                - rect.top;
+        offsetX =
+            e.clientX - rect.left;
+
+        offsetY =
+            e.clientY - rect.top;
+    });
+
+    document.addEventListener("mousemove", e => {
+
+        if(!dragging) return;
+
+        let rectArea =
+            a.getBoundingClientRect();
+
+        let nx =
+            (e.clientX
+            - rectArea.left
+            - offsetX) / scale;
+
+        let ny =
+            (e.clientY
+            - rectArea.top
+            - offsetY) / scale;
+
+        if(snap){
+
+            nx =
+                Math.round(nx / GRID) * GRID;
+
+            ny =
+                Math.round(ny / GRID) * GRID;
         }
-    );
 
-    v.addEventListener(
-        "touchmove",
-        e=>{
+        v.style.left = nx + "px";
+        v.style.top = ny + "px";
+    });
 
-            if(!dragging)
-                return;
+    document.addEventListener("mouseup", () => {
 
-            let rectArea =
-                a.getBoundingClientRect();
-
-            let nx =
-                (e.touches[0].clientX
-                - rectArea.left
-                - offsetX) / scale;
-
-            let ny =
-                (e.touches[0].clientY
-                - rectArea.top
-                - offsetY) / scale;
-
-            if(snap){
-
-                nx =
-                    Math.round(nx/GRID)
-                    * GRID;
-
-                ny =
-                    Math.round(ny/GRID)
-                    * GRID;
-            }
-
-            v.style.left =
-                nx + "px";
-
-            v.style.top =
-                ny + "px";
-        }
-    );
-
-    v.addEventListener(
-        "touchend",
-        ()=>{
+        if(dragging){
 
             dragging = false;
 
             salvar();
         }
-    );
+    });
 
-    v.addEventListener(
-        "click",
-        ()=>{
+    v.addEventListener("click", e => {
 
-            vagaSel = v;
+        e.stopPropagation();
 
-            document
-            .querySelectorAll(".vaga")
-            .forEach(x=>
-                x.style.outline=""
-            );
+        if(dragging) return;
 
-            v.style.outline =
-                "2px solid yellow";
+        if(modoDelete && modoEdicao){
+
+            v.remove();
+
+            salvar();
+
+            dash();
+
+            return;
         }
-    );
+
+        vagaSel = v;
+
+        document
+        .querySelectorAll(".vaga")
+        .forEach(x=>x.style.outline="");
+
+        v.style.outline =
+            "2px solid yellow";
+    });
 
     a.appendChild(v);
 
@@ -763,18 +703,18 @@ function criarVaga(a,x,y){
 function addCarro(){
 
     if(!modoEdicao)
-        return;
+        return alert("Acesso negado");
 
     if(!vagaSel)
-        return alert("Selecione vaga");
+        return alert("Selecione uma vaga");
 
     vagaSel.innerHTML = `
 
         <div class="carro"
-        style="
-        background:${cor.value};
-        color:${corTexto.value}
-        ">
+             style="
+             background:${cor.value};
+             color:${corTexto.value}
+             ">
 
             ${modelo.value}
 
@@ -793,7 +733,7 @@ function addCarro(){
 function remCarro(){
 
     if(!modoEdicao)
-        return;
+        return alert("Acesso negado");
 
     if(vagaSel){
 
@@ -808,13 +748,13 @@ function remCarro(){
 function rotacionar(){
 
     if(!modoEdicao)
-        return;
+        return alert("Acesso negado");
 
     if(!vagaSel)
         return;
 
     let r =
-        (+vagaSel.dataset.rot+90)%360;
+        (+vagaSel.dataset.rot + 90) % 360;
 
     vagaSel.dataset.rot = r;
 
@@ -830,12 +770,18 @@ function rotacionar(){
 
 function toggleDelete(){
 
+    if(!modoEdicao)
+        return alert("Acesso negado");
+
     modoDelete = !modoDelete;
 
     atualizarBotoes();
 }
 
 function toggleSnap(){
+
+    if(!modoEdicao)
+        return alert("Acesso negado");
 
     snap = !snap;
 
@@ -853,25 +799,24 @@ function buscar(){
         .toLowerCase()
         .trim();
 
-    document
-    .querySelectorAll(".vaga")
-    .forEach(v=>{
+    document.querySelectorAll(".vaga")
+    .forEach(v => {
 
         let textoBusca = "";
 
         /* CHASSI */
 
-        let chassi =
+        let c =
             v.querySelector(".chassi");
 
-        if(chassi){
+        if(c){
 
             textoBusca +=
-                chassi.innerText
+                c.innerText
                 .toLowerCase() + " ";
         }
 
-        /* MODELO / VERSÃO */
+        /* MODELO E VERSÃO */
 
         let carro =
             v.querySelector(".carro");
@@ -899,7 +844,7 @@ function buscar(){
             v.style.outline =
                 "3px solid lime";
 
-            v.style.zIndex = 999;
+            v.style.zIndex = "999";
 
         }else{
 
@@ -910,9 +855,19 @@ function buscar(){
     });
 }
 
-/* =========================
-   FIREBASE ONLINE
-========================= */
+carregarLogin();
+
+dash();
+
+atualizarBotoes();
+
+</script>
+
+<!-- =========================
+     FIREBASE ONLINE
+========================= -->
+
+<script type="module">
 
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -956,7 +911,7 @@ const db =
     getDatabase(app);
 
 /* =========================
-   SALVAR
+   SALVAR ONLINE
 ========================= */
 
 window.salvar = async function(){
@@ -965,19 +920,22 @@ window.salvar = async function(){
 
     document
     .querySelectorAll(".area")
-    .forEach(a=>{
+    .forEach(a => {
 
-        let vagas=[];
+        let vagas = [];
 
         a.querySelectorAll(".vaga")
-        .forEach(v=>{
+        .forEach(v => {
 
             vagas.push({
 
-                x:v.style.left,
-                y:v.style.top,
-                html:v.innerHTML,
-                rot:v.dataset.rot
+                x: v.style.left,
+
+                y: v.style.top,
+
+                html: v.innerHTML,
+
+                rot: v.dataset.rot
             });
         });
 
@@ -991,7 +949,7 @@ window.salvar = async function(){
     });
 
     await set(
-        ref(db,"estacionamento"),
+        ref(db, "estacionamento"),
         data
     );
 
@@ -999,26 +957,26 @@ window.salvar = async function(){
 }
 
 /* =========================
-   CARREGAR
+   CARREGAR ONLINE
 ========================= */
 
 function carregarOnline(){
 
     onValue(
 
-        ref(db,"estacionamento"),
+        ref(db, "estacionamento"),
 
-        (snap)=>{
+        (snapData) => {
 
-            map.innerHTML="";
+            map.innerHTML = "";
 
-            if(!snap.exists())
+            if(!snapData.exists())
                 return;
 
             let d =
-                snap.val();
+                snapData.val();
 
-            d.forEach(a=>{
+            d.forEach(a => {
 
                 criarAreaBase(a.nome);
 
@@ -1026,11 +984,11 @@ function carregarOnline(){
                     document.querySelectorAll(".area");
 
                 let atual =
-                    areas[areas.length-1];
+                    areas[areas.length - 1];
 
                 if(a.vagas){
 
-                    a.vagas.forEach(v=>{
+                    a.vagas.forEach(v => {
 
                         let nv =
                             criarVaga(
@@ -1059,16 +1017,16 @@ function carregarOnline(){
 }
 
 /* =========================
-   RESET
+   RESET ONLINE
 ========================= */
 
 window.reset = async function(){
 
     if(!modoEdicao)
-        return;
+        return alert("Acesso negado");
 
     await set(
-        ref(db,"estacionamento"),
+        ref(db, "estacionamento"),
         null
     );
 
@@ -1079,13 +1037,7 @@ window.reset = async function(){
    INIT
 ========================= */
 
-carregarLogin();
-
 carregarOnline();
-
-dash();
-
-atualizarBotoes();
 
 </script>
 
